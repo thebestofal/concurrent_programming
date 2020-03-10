@@ -7,7 +7,7 @@ int main()
 {
 	int flag;
 	char output[1024];	
-	flag = open("bufor.txt", O_WRONLY | O_APPEND);
+	flag = open("dane", O_WRONLY | O_APPEND);
 	int i = 0;
 	while(1)
 	{	
@@ -19,5 +19,11 @@ int main()
 
 	}
 	write(flag, output, i); //flag to wynik open pliku ostatni argument to długość wpisanego tekstu
+	
+	while(open("lockfile", O_CREAT | O_EXCL,0)==-1)
+	{
+		printf("Serwer zajęty, proszę czekać\n");
+		sleep(3);
+	}
 	return 0;
 }
