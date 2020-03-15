@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
 	printf("(Zalogowany jako:%s)\n" , uzytkownik);
 	
 	//łączenie z serwerem
-	while (open("lockfile",O_CREAT|O_EXCL, 0711)==-1)
+	while (open("/tmp/lockfile",O_CREAT|O_EXCL, 0711)==-1)
     {
        printf("Serwer zajety, prosze czekac\n\n");	
        sleep(2);
@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
 	
 	char output[1200] = {}; //wiadomość plus nagłówek z nazwą użytkownika
 	
-	while((dane = open("dane.txt", O_RDWR|O_CREAT|O_APPEND, 0711)) < 0)
+	while((dane = open("/tmp/dane.txt", O_RDWR|O_CREAT|O_APPEND, 0711)) < 0)
 	{
 		
 	}
@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
 	int wyniki;
 	char bufor_wyniki[WIADOMOSC] ={};
 
-	while((wyniki = open("wyniki.txt", O_RDWR)) < 0)
+	while((wyniki = open("/tmp/wyniki.txt", O_RDWR)) < 0)
 	{
 	}
 		
@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
 	}
 
 	//czyszczenie bufora
-	unlink("wyniki.txt");
+	unlink("/tmp/wyniki.txt");
 
 	getchar();
     return 0;

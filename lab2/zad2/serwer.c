@@ -13,7 +13,7 @@ int main()
 		int dane = 0;
 		char bufor_dane[WIADOMOSC] ={};
  
-  		while((dane = open("dane.txt", O_RDWR)) < 0)
+  		while((dane = open("/tmp/dane.txt", O_RDWR)) < 0)
  		{
 	   
    		}
@@ -32,14 +32,14 @@ int main()
 		char znak[1] = {};
 		int counter = 0;
 		
-		while((wyniki = open("wyniki.txt", O_RDWR|O_CREAT|O_EXCL, 0711)) < 0)
+		while((wyniki = open("/tmp/wyniki.txt", O_RDWR|O_CREAT|O_EXCL, 0711)) < 0)
 		{
 			
 		}
 		
 		if(wyniki != 0)
 		{
-			printf("SERWER - NAPISZ WIADOMOSC ZWROTNA DLA KLIENTA:\n");
+			printf("SERWER - Napisz wiadomosc zwrotna:\n");
 			while(1)
 			{
 				read(0,znak,1);
@@ -56,8 +56,8 @@ int main()
 		}
 		
 		//wyczyść bufor i usuń lockfile
-		unlink("lockfile");
-		unlink("dane.txt");
+		unlink("/tmp/lockfile");
+		unlink("/tmp/dane.txt");
 		
 		printf("\n\n");
 	}
