@@ -1,0 +1,8 @@
+./serwer.sh
+
+./klient.sh nazwa liczba
+
+ps -a #pokazuje procesy
+kill -SIGTERM PID
+kill -SIGCHLD PID
+kill -SIGUSR1 PID
