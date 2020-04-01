@@ -5,186 +5,179 @@
 #include <fcntl.h>
 #include <signal.h>
 #include <sys/stat.h>
-
-#define CLIENT_FIFO "klientfifo"
-#define SERVER_FIFO "serwerfifo"
-
-#define DATABASE_RECORDS 20
+#define BAZA_DANYCH_REKORDY 20
 #define NAME_SIZE 20
 
-typedef struct request_t
+typedef struct zapytanie
 {
-    int payloadSize;
+    int size;
 
-    // payload
     int id;
     char* homepath;
 
-} request;
+} zapytanie;
 
-typedef struct response_t
+typedef struct odpowiedz
 {
-    int payloadSize;
+    int size;
 
-    // payload
-    char* name;
+    char* nazwisko;
 
-} response;
+} odpowiedz;
 
-typedef struct record_t
+typedef struct rekord
 {
     int id;
-    char* name;
+    char* nazwisko;
 
-} record;
+} rekord;
 
-record* g_database;
+rekord* baza_danych;
 
-void initializeDatabase()
+void stworzBaze()
 {
-    g_database = malloc(DATABASE_RECORDS * sizeof(record));
-    for (int i = 0; i < DATABASE_RECORDS; i++)
+    baza_danych = malloc(BAZA_DANYCH_REKORDY * sizeof(rekord));
+    for (int i = 0; i < BAZA_DANYCH_REKORDY; i++)
     {
-        g_database[i].id = -1;
-        g_database[i].name = malloc(NAME_SIZE * sizeof(char));
+        baza_danych[i].id = -1;
+        baza_danych[i].nazwisko = malloc(NAME_SIZE * sizeof(char));
     }
 
-    g_database[0].id = 0;
-    strcpy(g_database[0].name, "Nowak");
-    g_database[1].id = 1;
-    strcpy(g_database[1].name, "Kowalska");
-    g_database[2].id = 2;
-    strcpy(g_database[2].name, "Kowalczyk");
-    g_database[3].id = 3;
-    strcpy(g_database[3].name, "Lewandowski");
-    g_database[4].id = 4;
-    strcpy(g_database[4].name, "Polak");
-    g_database[5].id = 5;
-    strcpy(g_database[5].name, "Wójcik");
-    g_database[6].id = 6;
-    strcpy(g_database[6].name, "Woźniak");
-    g_database[7].id = 7;
-    strcpy(g_database[7].name, "Mazur");
-    g_database[8].id = 8;
-    strcpy(g_database[8].name, "Kozłowska");
-    g_database[9].id = 9;
-    strcpy(g_database[9].name, "Krawczyk");
-    g_database[10].id = 10;
-    strcpy(g_database[10].name, "Michalska");
-    g_database[11].id = 11;
-    strcpy(g_database[11].name, "Wieczorek");
-    g_database[12].id = 12;
-    strcpy(g_database[12].name, "Jaworska");
-    g_database[13].id = 13;
-    strcpy(g_database[13].name, "Adamczyk");
-    g_database[14].id = 14;
-    strcpy(g_database[14].name, "Nowicka");
-    g_database[15].id = 15;
-    strcpy(g_database[15].name, "Dudek");
-    g_database[16].id = 16;
-    strcpy(g_database[16].name, "Walczak");
-    g_database[17].id = 17;
-    strcpy(g_database[17].name, "Sikora");
-    g_database[18].id = 18;
-    strcpy(g_database[18].name, "Szewczyk");
-    g_database[19].id = 19;
-    strcpy(g_database[19].name, "Kietliński");
+    baza_danych[0].id = 0;
+    strcpy(baza_danych[0].nazwisko, "Nowak");
+    baza_danych[1].id = 1;
+    strcpy(baza_danych[1].nazwisko, "Kowalska");
+    baza_danych[2].id = 2;
+    strcpy(baza_danych[2].nazwisko, "Kowalczyk");
+    baza_danych[3].id = 3;
+    strcpy(baza_danych[3].nazwisko, "Lewandowski");
+    baza_danych[4].id = 4;
+    strcpy(baza_danych[4].nazwisko, "Polak");
+    baza_danych[5].id = 5;
+    strcpy(baza_danych[5].nazwisko, "Wójcik");
+    baza_danych[6].id = 6;
+    strcpy(baza_danych[6].nazwisko, "Woźniak");
+    baza_danych[7].id = 7;
+    strcpy(baza_danych[7].nazwisko, "Mazur");
+    baza_danych[8].id = 8;
+    strcpy(baza_danych[8].nazwisko, "Kozłowska");
+    baza_danych[9].id = 9;
+    strcpy(baza_danych[9].nazwisko, "Krawczyk");
+    baza_danych[10].id = 10;
+    strcpy(baza_danych[10].nazwisko, "Michalska");
+    baza_danych[11].id = 11;
+    strcpy(baza_danych[11].nazwisko, "Wieczorek");
+    baza_danych[12].id = 12;
+    strcpy(baza_danych[12].nazwisko, "Jaworska");
+    baza_danych[13].id = 13;
+    strcpy(baza_danych[13].nazwisko, "Adamczyk");
+    baza_danych[14].id = 14;
+    strcpy(baza_danych[14].nazwisko, "Nowicka");
+    baza_danych[15].id = 15;
+    strcpy(baza_danych[15].nazwisko, "Dudek");
+    baza_danych[16].id = 16;
+    strcpy(baza_danych[16].nazwisko, "Walczak");
+    baza_danych[17].id = 17;
+    strcpy(baza_danych[17].nazwisko, "Sikora");
+    baza_danych[18].id = 18;
+    strcpy(baza_danych[18].nazwisko, "Szewczyk");
+    baza_danych[19].id = 19;
+    strcpy(baza_danych[19].nazwisko, "Kietliński");
 
 }
 
-char* getNameByRecordId(int recordId)
+char* getNameById(int rekordId)
 {
-    for (int i = 0; i < DATABASE_RECORDS; i++)
+    for (int i = 0; i < BAZA_DANYCH_REKORDY; i++)
     {
-        if (g_database[i].id == recordId)
+        if (baza_danych[i].id == rekordId)
         {
-            return g_database[i].name;
+            return baza_danych[i].nazwisko;
         }
     }
 
     return "Not found!";
 }
 
-request* receiveRequest(int serverFifoHandle, int requestPayloadSize)
+zapytanie* odbierzZapytanie(int serwerFifo, int zapytanieSize)
 {
-    request* req = malloc(sizeof(requestPayloadSize) + requestPayloadSize);
-    req->payloadSize = requestPayloadSize;
-    req->homepath = malloc(requestPayloadSize - sizeof(req->id));
+    zapytanie* z = malloc(sizeof(zapytanieSize) + zapytanieSize);
+    z->size = zapytanieSize;
+    z->homepath = malloc(zapytanieSize - sizeof(z->id));
 
-    void* buffer = malloc(requestPayloadSize);
-    read(serverFifoHandle, buffer, requestPayloadSize);
+    void* buffer = malloc(zapytanieSize);
+    read(serwerFifo, buffer, zapytanieSize);
 
-    memcpy(&req->id, buffer, sizeof(req->id));
-    memcpy(req->homepath, buffer + sizeof(req->id), requestPayloadSize - sizeof(req->id));
+    memcpy(&z->id, buffer, sizeof(z->id));
+    memcpy(z->homepath, buffer + sizeof(z->id), zapytanieSize - sizeof(z->id));
 
     free(buffer);
-    return req;
+    return z;
 }
 
-response* createResponseForRequest(request* req)
+odpowiedz* stworzOdpowiedz(zapytanie* z)
 {
-    response* resp = malloc(sizeof(response));
-    resp->name = getNameByRecordId(req->id);
-    resp->payloadSize = strlen(resp->name);
+    odpowiedz* odp = malloc(sizeof(odpowiedz));
+    odp->nazwisko = getNameById(z->id);
+    odp->size = strlen(odp->nazwisko);
 
-    return resp;
+    return odp;
 }
 
-void sendResponse(int clientFifoHandle, response* res)
+void wyslijOdpowiedz(int klientFifo, odpowiedz* odp)
 {
-    int responseSize = res->payloadSize + sizeof(res->payloadSize);
-    void* buffer = malloc(responseSize);
+    int odpowiedzSize = odp->size + sizeof(odp->size);
+    void* buffer = malloc(odpowiedzSize);
 
-    memcpy(buffer, &res->payloadSize, sizeof(res->payloadSize));
-    memcpy(buffer + sizeof(res->payloadSize), res->name, res->payloadSize);
-    write(clientFifoHandle, buffer, responseSize);
+    memcpy(buffer, &odp->size, sizeof(odp->size));
+    memcpy(buffer + sizeof(odp->size), odp->nazwisko, odp->size);
+    write(klientFifo, buffer, odpowiedzSize);
 
     free(buffer);
 }
 
-void handleRequest(int serverFifoHandle, int requestSize)
+void odpowiedzNaZapytanie(int serwerFifo, int zapytanieSize)
 {
-    request* req = receiveRequest(serverFifoHandle, requestSize);
-    response* res = createResponseForRequest(req);
+    zapytanie* z = odbierzZapytanie(serwerFifo, zapytanieSize);
+    odpowiedz* odp = stworzOdpowiedz(z);
 
-    // using local client fifo path for sake of simplicity
-    int clientFifoHandle = open(CLIENT_FIFO, O_WRONLY);
-    sendResponse(clientFifoHandle, res);
-    close(clientFifoHandle);
+    // using local klient fifo path for sake of simplicity
+    int klientFifo = open("klientfifo", O_WRONLY);
+    wyslijOdpowiedz(klientFifo, odp);
+    close(klientFifo);
 }
 
-void waitForRequests()
+void czekajNaZapytanie()
 {
-    int fifo = open(SERVER_FIFO, O_RDONLY);
+    int fifo = open("serwerfifo", O_RDONLY);
     while (1)
     {
-        int requestPayloadSize = 0;
-        if (read(fifo, &requestPayloadSize, sizeof(int)) > 0)
+        int zapytanieSize = 0;
+        if (read(fifo, &zapytanieSize, sizeof(int)) > 0)
         {
-            handleRequest(fifo, requestPayloadSize);
+            odpowiedzNaZapytanie(fifo, zapytanieSize);
         }
     }
 }
 
-void initializeFifo()
+void mkfifos()
 {
-    mkfifo(SERVER_FIFO, 0666);
-    mkfifo(CLIENT_FIFO, 0666);
+    mkfifo("serwerfifo", 0666);
+    mkfifo("klientfifo", 0666);
 }
 
 void cleanup(int signal)
 {
-    remove(SERVER_FIFO);
-    remove(CLIENT_FIFO);
+    remove("serwerfifo");
+    remove("klientfifo");
     exit(0);
 }
 
 int main()
 {    
-    // trap SIGINT (Ctrl+C) to run cleanup
     signal(SIGINT, cleanup);
 
-    initializeFifo();
-    initializeDatabase();
-    waitForRequests();
+    mkfifos();
+    stworzBaze();
+    czekajNaZapytanie();
 }

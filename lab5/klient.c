@@ -4,76 +4,73 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#define CLIENT_FIFO "klientfifo"
-#define SERVER_FIFO "serwerfifo"
 
-typedef struct request_t
+typedef struct zapytanie
 {
     int size;
 
     int id;
     char* homepath;
 
-} request;
+} zapytanie;
 
-typedef struct response_t
+typedef struct odpowiedz
 {
     int size;
 
-    // payload
-    char* name;
+    char* nazwisko;
 
-} response;
+} odpowiedz;
 
-request* createRequest(int id, char* homepath)
+zapytanie* stworzZapytanie(int id, char* homepath)
 {
-    request* req = malloc(sizeof(request));
-    req->id = id;
-    req->homepath = homepath;
-    req->size = sizeof(req->id) + strlen(req->homepath);
-    return req;
+    zapytanie* z = malloc(sizeof(zapytanie));
+    z->id = id;
+    z->homepath = homepath;
+    z->size = sizeof(z->id) + strlen(z->homepath);
+    return z;
 }
 
-void sendRequest(int serverFifoHandle, request* req)
+void wyslijZapytanie(int serverFifoHandle, zapytanie* z)
 {
-    int requestSize = sizeof(req->size) + req->size;
-    void* buffer = malloc(requestSize);
+    int zapytanieSize = sizeof(z->size) + z->size;
+    void* buffer = malloc(zapytanieSize);
 
-    memcpy(buffer, &req->size, sizeof(req->size));
-    memcpy(buffer + sizeof(req->size), &req->id, sizeof(req->id));
-    memcpy(buffer + sizeof(req->size) + sizeof(req->id), req->homepath, req->size - sizeof(req->id));
+    memcpy(buffer, &z->size, sizeof(z->size));
+    memcpy(buffer + sizeof(z->size), &z->id, sizeof(z->id));
+    memcpy(buffer + sizeof(z->size) + sizeof(z->id), z->homepath, z->size - sizeof(z->id));
 
-    write(serverFifoHandle, buffer, requestSize);
+    write(serverFifoHandle, buffer, zapytanieSize);
     free(buffer);
 }
 
-response* receiveResponse(int clientFifoHandle, int responsePayloadSize)
+odpowiedz* odbierzOdpowiedz(int clientFifoHandle, int odpowiedzSize)
 {
-    response* res = malloc(sizeof(responsePayloadSize) + responsePayloadSize);
-    res->size = responsePayloadSize;
-    res->name = malloc(responsePayloadSize);
+    odpowiedz* odp = malloc(sizeof(odpowiedzSize) + odpowiedzSize);
+    odp->size = odpowiedzSize;
+    odp->nazwisko = malloc(odpowiedzSize);
 
-    void* buffer = malloc(responsePayloadSize);
-    read(clientFifoHandle, buffer, responsePayloadSize);
-    memcpy(res->name, buffer, responsePayloadSize);
+    void* buffer = malloc(odpowiedzSize);
+    read(clientFifoHandle, buffer, odpowiedzSize);
+    memcpy(odp->nazwisko, buffer, odpowiedzSize);
 
     free(buffer);
-    return res;
+    return odp;
 }
 
-void handleResponse(int clientFifoHandle)
+void wyslijOdpowiedz(int clientFifoHandle)
 {
-    int responsePayloadSize = 0;
-    if (read(clientFifoHandle, &responsePayloadSize, sizeof(responsePayloadSize)) > 0)
+    int odpowiedzSize = 0;
+    if (read(clientFifoHandle, &odpowiedzSize, sizeof(odpowiedzSize)) > 0)
     {
-        response* res = receiveResponse(clientFifoHandle, responsePayloadSize);
-        printf("%s\n", res->name);
+        odpowiedz* odp = odbierzOdpowiedz(clientFifoHandle, odpowiedzSize);
+        printf("%s\n", odp->nazwisko);
     }
 }
 
 int main(int argc, char * argv[])
 {
-    int serverFifo = open(SERVER_FIFO, O_WRONLY);
+    int serverFifo = open("serwerfifo", O_WRONLY);
 	if(serverFifo < 0)
 	{
 		printf("Nie znaleziono serwera!\n");
@@ -84,9 +81,9 @@ int main(int argc, char * argv[])
 		printf("Nie podano ID!\n");
 		return 1;
 	}    
-	request* req = createRequest(atoi(argv[1]), getenv("HOME"));
-    sendRequest(serverFifo, req);
+	zapytanie* z = stworzZapytanie(atoi(argv[1]), getenv("HOME"));
+    wyslijZapytanie(serverFifo, z);
 
-    int clientFifo = open(CLIENT_FIFO, O_RDONLY);
-    handleResponse(clientFifo);
+    int clientFifo = open("klientfifo", O_RDONLY);
+    wyslijOdpowiedz(clientFifo);
 }
