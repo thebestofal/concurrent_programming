@@ -4,7 +4,7 @@ do
 	x=$(< dane.txt)
 	if [ $x ]
 	then
-		wielomian=$(( $x*$x*$x+$x*$x+2 ))
+		wielomian=$(( $x*$x*$x+2 ))
 		echo $wielomian > wyniki.txt
 		> dane.txt
 	fi

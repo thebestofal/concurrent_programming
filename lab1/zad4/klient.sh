@@ -1,4 +1,7 @@
 #!/bin/bash
+echo "Podaj liczbe:"
+	read x
+	echo $x > dane.txt
 while true
 do
 	wynik=$(< wyniki.txt)
@@ -7,9 +10,6 @@ do
 		echo $wynik
 		> wyniki.txt
 		break
-	else
-		read x
-		echo $x > dane.txt
 	fi
 done
 
