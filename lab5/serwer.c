@@ -96,7 +96,7 @@ char* getNameById(int rekordId)
         }
     }
 
-    return "Not found!";
+    return "Nie znaleziono!";
 }
 
 zapytanie* odbierzZapytanie(int serwerFifo, int zapytanieSize)
@@ -141,8 +141,7 @@ void odpowiedzNaZapytanie(int serwerFifo, int zapytanieSize)
     zapytanie* z = odbierzZapytanie(serwerFifo, zapytanieSize);
     odpowiedz* odp = stworzOdpowiedz(z);
 
-    // using local klient fifo path for sake of simplicity
-    int klientFifo = open("klientfifo", O_WRONLY);
+ 	int klientFifo = open(z->homepath, O_WRONLY);
     wyslijOdpowiedz(klientFifo, odp);
     close(klientFifo);
 }
@@ -160,16 +159,10 @@ void czekajNaZapytanie()
     }
 }
 
-void mkfifos()
-{
-    mkfifo("serwerfifo", 0666);
-    mkfifo("klientfifo", 0666);
-}
 
 void cleanup(int signal)
 {
     remove("serwerfifo");
-    remove("klientfifo");
     exit(0);
 }
 
@@ -177,7 +170,7 @@ int main()
 {    
     signal(SIGINT, cleanup);
 
-    mkfifos();
+    mkfifo("serwerfifo", 0666);
     stworzBaze();
     czekajNaZapytanie();
 }

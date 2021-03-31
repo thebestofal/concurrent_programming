@@ -3,7 +3,8 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
-
+#include <signal.h>
+#include <sys/stat.h>
 
 typedef struct zapytanie
 {
@@ -70,7 +71,7 @@ void wyslijOdpowiedz(int clientFifoHandle)
 
 int main(int argc, char * argv[])
 {
-    int serverFifo = open("serwerfifo", O_WRONLY);
+    int serverFifo = open("/home/marek/Dokumenty/concurrent_programming/lab5/serwerfifo", O_WRONLY);
 	if(serverFifo < 0)
 	{
 		printf("Nie znaleziono serwera!\n");
@@ -80,10 +81,13 @@ int main(int argc, char * argv[])
 	{
 		printf("Nie podano ID!\n");
 		return 1;
-	}    
-	zapytanie* z = stworzZapytanie(atoi(argv[1]), getenv("HOME"));
+	}
+	mkfifo("klientfifo", 0666);    
+	zapytanie* z = stworzZapytanie(atoi(argv[1]), realpath("klientfifo", NULL));
     wyslijZapytanie(serverFifo, z);
 
     int clientFifo = open("klientfifo", O_RDONLY);
     wyslijOdpowiedz(clientFifo);
+	remove("klientfifo");
+	
 }
